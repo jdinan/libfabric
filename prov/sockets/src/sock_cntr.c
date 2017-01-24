@@ -80,6 +80,7 @@ void sock_cntr_add_rx_ctx(struct sock_cntr *cntr, struct sock_rx_ctx *rx_ctx)
 		SOCK_LOG_ERROR("Error in adding ctx to progress list\n");
 	else
 		atomic_inc(&cntr->ref);
+		printf("inc: cntr->ref = %d\n", atomic_get(&cntr->ref));
 }
 
 void sock_cntr_remove_rx_ctx(struct sock_cntr *cntr, struct sock_rx_ctx *rx_ctx)
@@ -87,6 +88,7 @@ void sock_cntr_remove_rx_ctx(struct sock_cntr *cntr, struct sock_rx_ctx *rx_ctx)
 	struct fid *fid = &rx_ctx->ctx.fid;
 	fid_list_remove(&cntr->rx_list, &cntr->list_lock, fid);
 	atomic_dec(&cntr->ref);
+		printf("dec: cntr->ref = %d\n", atomic_get(&cntr->ref));
 }
 
 int sock_cntr_progress(struct sock_cntr *cntr)
@@ -383,8 +385,10 @@ static int sock_cntr_close(struct fid *fid)
 	struct sock_cntr *cntr;
 
 	cntr = container_of(fid, struct sock_cntr, cntr_fid.fid);
-	if (atomic_get(&cntr->ref))
+	if (atomic_get(&cntr->ref)) {
+            printf("cntr->ref = %d\n", atomic_get(&cntr->ref));
 		return -FI_EBUSY;
+        }
 
 	if (cntr->signal && cntr->attr.wait_obj == FI_WAIT_FD)
 		sock_wait_close(&cntr->waitset->fid);
